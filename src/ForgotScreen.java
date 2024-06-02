@@ -4,7 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.mail.*;
 import javax.mail.internet.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 public class ForgotScreen {
     private JFrame frame;
@@ -37,8 +39,13 @@ public class ForgotScreen {
                 String email = userMail.getText();
                 String id = userID.getText();
                 String password = generatePassword(); // Şifreyi oluşturun
-                sendEmail(email, id, password); // E-posta gönderin
-                JOptionPane.showMessageDialog(frame, "The new password has been sent to your e-mail address."); // Bilgilendirme mesajı
+                try {
+                    sendEmail(email, id, password); // E-posta gönderin
+                    JOptionPane.showMessageDialog(frame, "The new password has been sent to your e-mail address."); // Bilgilendirme mesajı
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(frame, "Error sending email: " + ex.getMessage());
+                }
             }
         });
 
@@ -69,11 +76,12 @@ public class ForgotScreen {
     }
 
     //sendButtonuna basıldığında mail göndermek için gerekli işlemler.
-    private void sendEmail(String to, String id, String password) {
-        String from = "flower.libratech@gmail.com"; // Kendi e-posta adresiniz
+    private void sendEmail(String to, String id, String password) throws IOException {
+        Properties config = ConfigReader.readConfig();
+        String from = config.getProperty("email.from"); // Kendi e-posta adresiniz
         String host = "smtp.gmail.com"; // Gmail SMTP sunucusu
-        String username = "flower.libratech@gmail.com"; // E-posta adresiniz
-        String emailPassword = "lwkv lkpf aruq sjao"; // E-posta adresinizin şifresi (tercihen uygulama şifresi). Bu şifre "Daha Az Güvenli Uygulamalar" yazılarak bulundu.
+        String username = config.getProperty("email.username"); // E-posta adresiniz
+        String emailPassword = config.getProperty("email.password"); // E-posta adresinizin şifresi (tercihen uygulama şifresi). Bu şifre "Daha Az Güvenli Uygulamalar" yazılarak bulundu.
 
         Properties properties = System.getProperties();
         properties.setProperty("mail.smtp.host", host);
@@ -101,4 +109,8 @@ public class ForgotScreen {
             mex.printStackTrace();
         }
     }
+
+
 }
+
+
