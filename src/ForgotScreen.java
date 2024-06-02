@@ -92,7 +92,7 @@ public class ForgotScreen {
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
             message.setSubject("New Password Request");
-            // E-posta metninde kullanıcı ID'sini ve yeni şifreyi belirtiyoruz
+            // Gönderilen E-posta metninde kullanıcı ID'sini ve yeni şifreyi belirtiyoruz
             message.setText("Your ID: " + id + "\nYour new password: " + password);
 
             Transport.send(message);
