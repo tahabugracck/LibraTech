@@ -31,6 +31,7 @@ public class HomeScreen {
             bookListModel.addElement("Book" + i);
         }
 
+
         // Sol panelde butonlar oluşturuluyor
         JPanel leftButtonPanel = new JPanel(new GridLayout(1, 2));
         JButton addBookButton = new JButton("Add Book");
@@ -121,7 +122,7 @@ public class HomeScreen {
         editProfileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Profil düzenleme işlemleri burada yapılacak
+                // Profil düzenleme işlemleri
             }
         });
 
@@ -129,7 +130,7 @@ public class HomeScreen {
         saveProfileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Profil kaydetme işlemleri burada yapılacak
+                // Profil kaydetme işlemleri
             }
         });
 
