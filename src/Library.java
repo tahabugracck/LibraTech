@@ -6,14 +6,9 @@ public class Library {
     private Map<String, List<Book>> userBooks;
 
     public Library() {
-        this.allBooks = new ArrayList<>();
+        this.allBooks = GoogleBooksAPI.searchBooks("programming"); // Örneğin, "programming" kitaplarını arıyor
         this.userBooks = new HashMap<>();
-        loadBooksFromFile();
-    }
-
-    public void addBook(Book book) {
-        allBooks.add(book);
-        saveBooksToFile();
+        loadUserBooksFromFile();
     }
 
     public List<Book> getAllBooks() {
@@ -22,35 +17,18 @@ public class Library {
 
     public void borrowBook(String userId, Book book) {
         userBooks.computeIfAbsent(userId, k -> new ArrayList<>()).add(book);
+        saveUserBooksToFile();
     }
 
     public void returnBook(String userId, Book book) {
         if (userBooks.containsKey(userId)) {
             userBooks.get(userId).remove(book);
+            saveUserBooksToFile();
         }
     }
 
     public List<Book> getUserBooks(String userId) {
         return userBooks.getOrDefault(userId, new ArrayList<>());
-    }
-
-    private void saveBooksToFile() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("books.dat"))) {
-            oos.writeObject(allBooks);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadBooksFromFile() {
-        File file = new File("books.dat");
-        if (file.exists()) {
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-                allBooks = (List<Book>) ois.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public void saveUserBooksToFile() {
