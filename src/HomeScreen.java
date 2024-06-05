@@ -9,8 +9,15 @@ public class HomeScreen {
     private JFrame frame;
     private DefaultListModel<String> bookListModel;
     private JTextArea bookDetailsArea;
+    private JTextField userIDField;
+    private JPasswordField passwordField;
+    private UserManager userManager;
+    private User currentUser;
 
-    public HomeScreen() {
+    public HomeScreen(User currentUser) {
+        this.currentUser = currentUser;
+        this.userManager = new UserManager();
+
         // JFrame oluşturuluyor ve temel özellikleri ayarlanıyor
         frame = new JFrame("LibraTech - HomeScreen");
         frame.setSize(1000, 600);
@@ -30,7 +37,6 @@ public class HomeScreen {
         for (int i = 1; i <= 5; i++) {
             bookListModel.addElement("Book" + i);
         }
-
 
         // Sol panelde butonlar oluşturuluyor
         JPanel leftButtonPanel = new JPanel(new GridLayout(1, 2));
@@ -118,11 +124,24 @@ public class HomeScreen {
         rightButtonPanel.add(saveProfileButton);
         rightPanel.add(rightButtonPanel, BorderLayout.SOUTH);
 
+        // Kullanıcı bilgilerini göstermek için alanlar ekleniyor
+        JPanel userInfoPanel = new JPanel(new GridLayout(2, 2));
+        userInfoPanel.add(new JLabel("User ID:"));
+        userIDField = new JTextField(currentUser.getIDname());
+        userIDField.setEditable(false);
+        userInfoPanel.add(userIDField);
+
+        userInfoPanel.add(new JLabel("Password:"));
+        passwordField = new JPasswordField(currentUser.getPassword());
+        passwordField.setEditable(false);
+        userInfoPanel.add(passwordField);
+        rightPanel.add(userInfoPanel, BorderLayout.CENTER);
+
         // Profil düzenleme butonu için action listener ekleniyor
         editProfileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Profil düzenleme işlemleri
+                passwordField.setEditable(true);
             }
         });
 
@@ -130,7 +149,11 @@ public class HomeScreen {
         saveProfileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Profil kaydetme işlemleri
+                passwordField.setEditable(false);
+                String newPassword = new String(passwordField.getPassword());
+                currentUser = new User(currentUser.getIDname(), newPassword);
+                userManager.saveUsersToFile(); // Kullanıcı bilgilerini kaydet
+                JOptionPane.showMessageDialog(frame, "Profile updated successfully.");
             }
         });
 
