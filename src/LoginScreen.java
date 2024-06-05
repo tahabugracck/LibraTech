@@ -1,7 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class LoginScreen {
     private JFrame frame;
@@ -39,7 +39,8 @@ public class LoginScreen {
                         String ID = userID.getText();
                         String pass = new String(userPassword.getPassword());
                         if (userManager.authenticateUser(ID, pass) || pass.equals("123456")) {
-                            HomeScreen appScreen = new HomeScreen();
+                            User authenticatedUser = userManager.getUser(ID);
+                            HomeScreen appScreen = new HomeScreen(authenticatedUser);
                             appScreen.open();
                             frame.dispose();
                         } else {
@@ -47,7 +48,7 @@ public class LoginScreen {
                         }
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
-                        ex.printStackTrace();//bu metodun amacı eğer bir hata varsa bunu çok daha detaylı bir şekilde açıklanılması
+                        ex.printStackTrace(); // Bu metodun amacı eğer bir hata varsa bunu çok daha detaylı bir şekilde açıklamak
                     }
                 }
             });
@@ -63,7 +64,6 @@ public class LoginScreen {
                     }
                 }
             });
-
 
             registerButton.addActionListener(new ActionListener() {
                 @Override
@@ -94,6 +94,4 @@ public class LoginScreen {
             exception.printStackTrace();
         }
     }
-
-
 }
