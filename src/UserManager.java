@@ -10,7 +10,7 @@ public class UserManager {
     }
 
     public void addUser(User user) {
-        if (!isUserIDNameTAken(user.getIDname())) {
+        if (!isUserIDNameTaken(user.getIDname())) {
             users.add(user);
             saveUsersToFile();
         } else {
@@ -18,24 +18,31 @@ public class UserManager {
         }
     }
 
-
     public boolean authenticateUser(String ID, String password) {
         for (User user : users) {
             if (user.getIDname().equals(ID) && user.getPassword().equals(password)) {
                 return true;
             }
-
         }
         return false;
     }
 
-    public boolean isUserIDNameTAken(String ID) {
+    public boolean isUserIDNameTaken(String ID) {
         for (User user : users) {
             if (user.getIDname().equals(ID)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public User getUser(String ID) {
+        for (User user : users) {
+            if (user.getIDname().equals(ID)) {
+                return user;
+            }
+        }
+        return null;
     }
 
     public void saveUsersToFile() {
@@ -46,7 +53,6 @@ public class UserManager {
             JOptionPane.showMessageDialog(null, "Error saving users: " + e.getMessage());
         }
     }
-
 
     public void loadUsersFromFile() {
         File file = new File("users.dat");
