@@ -4,6 +4,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class HomeScreen {
     private JFrame frame;
@@ -13,9 +14,11 @@ public class HomeScreen {
     private JPasswordField passwordField;
     private UserManager userManager;
     private User currentUser;
+    private Library library;
 
-    public HomeScreen(User currentUser) {
+    public HomeScreen(User currentUser, Library library) {
         this.currentUser = currentUser;
+        this.library = library;
         this.userManager = new UserManager();
 
         // JFrame oluşturuluyor ve temel özellikleri ayarlanıyor
@@ -33,9 +36,9 @@ public class HomeScreen {
         JList<String> bookList = new JList<>(bookListModel);
         leftPanel.add(new JScrollPane(bookList), BorderLayout.CENTER);
 
-        // Başlangıçta 5 kitap ekleniyor
-        for (int i = 1; i <= 5; i++) {
-            bookListModel.addElement("Book" + i);
+        // Kitapları yükle
+        for (Book book : library.getAllBooks()) {
+            bookListModel.addElement(book.toString());
         }
 
         // Sol panelde butonlar oluşturuluyor
@@ -50,136 +53,153 @@ public class HomeScreen {
         addBookButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String newBook = JOptionPane.showInputDialog(frame, "Enter book name:");
-                if (newBook != null && !newBook.trim().isEmpty()) {
-                    bookListModel.addElement(newBook);
-                }
-            }
-        });
-
-        // Kitap güncelleme butonu için action listener ekleniyor
-        updateBookButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedIndex = bookList.getSelectedIndex();
-                if (selectedIndex != -1) {
-                    String updatedBook = JOptionPane.showInputDialog(frame, "Update book name:", bookListModel.get(selectedIndex));
-                    if (updatedBook != null && !updatedBook.trim().isEmpty()) {
-                        bookListModel.set(selectedIndex, updatedBook);
-                    }
+                String newBookTitle = JOptionPane.showInputDialog(frame, "Enter book title:");
+                String newBookAuthor = JOptionPane.showInputDialog(frame, "Enter book author:");
+                String newBookIsbn = JOptionPane.showInputDialog(frame, "Enter book ISBN:");
+                if (newBookTitle != null && !newBookTitle.trim().isEmpty() &&
+                        newBookAuthor != null && !newBookAuthor.trim().isEmpty() &&
+                        newBookIsbn != null && !newBookIsbn.trim().isEmpty()) {
+                    Book newBook = new Book(newBookTitle, newBookAuthor, newBookIsbn);
+                    library.addBook(newBook);
+                    bookListModel.addElement(newBook.toString());
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Please select a book to update.");
+                    JOptionPane.showMessageDialog(frame, "All fields are required.");
                 }
             }
         });
 
-        // Orta panel oluşturuluyor
-        JPanel midPanel = new JPanel(new BorderLayout());
-        bookDetailsArea = new JTextArea();
-        bookDetailsArea.setEditable(false); // Metin alanı sadece okunabilir
-        midPanel.add(new JScrollPane(bookDetailsArea), BorderLayout.CENTER);
-
-        // Orta panelde butonlar oluşturuluyor
-        JPanel midButtonPanel = new JPanel(new GridLayout(1, 2));
-        JButton borrowBookButton = new JButton("Borrow");
-        JButton returnBookButton = new JButton("Return");
-        midButtonPanel.add(borrowBookButton);
-        midButtonPanel.add(returnBookButton);
-        midPanel.add(midButtonPanel, BorderLayout.SOUTH);
-
-        // Ödünç alma butonu için action listener ekleniyor
-        borrowBookButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedIndex = bookList.getSelectedIndex();
-                if (selectedIndex != -1) {
-                    String bookName = bookListModel.getElementAt(selectedIndex);
-                    JOptionPane.showMessageDialog(frame, "You borrowed: " + bookName);
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Please select a book to borrow.");
-                }
-            }
-        });
-
-        // İade etme butonu için action listener ekleniyor
-        returnBookButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedIndex = bookList.getSelectedIndex();
-                if (selectedIndex != -1) {
-                    String bookName = bookListModel.getElementAt(selectedIndex);
-                    JOptionPane.showMessageDialog(frame, "You returned: " + bookName);
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Please select a book to return.");
-                }
-            }
-        });
-
-        // Sağ panel oluşturuluyor
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        JPanel rightButtonPanel = new JPanel(new GridLayout(1, 2));
-        JButton editProfileButton = new JButton("Edit");
-        JButton saveProfileButton = new JButton("Save");
-        rightButtonPanel.add(editProfileButton);
-        rightButtonPanel.add(saveProfileButton);
-        rightPanel.add(rightButtonPanel, BorderLayout.SOUTH);
-
-        // Kullanıcı bilgilerini göstermek için alanlar ekleniyor
-        JPanel userInfoPanel = new JPanel(new GridLayout(2, 2));
-        userInfoPanel.add(new JLabel("User ID:"));
-        userIDField = new JTextField(currentUser.getIDname());
-        userIDField.setEditable(false);
-        userInfoPanel.add(userIDField);
-
-        userInfoPanel.add(new JLabel("Password:"));
-        passwordField = new JPasswordField(currentUser.getPassword());
-        passwordField.setEditable(false);
-        userInfoPanel.add(passwordField);
-        rightPanel.add(userInfoPanel, BorderLayout.CENTER);
-
-        // Profil düzenleme butonu için action listener ekleniyor
-        editProfileButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                passwordField.setEditable(true);
-            }
-        });
-
-        // Profil kaydetme butonu için action listener ekleniyor
-        saveProfileButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                passwordField.setEditable(false);
-                String newPassword = new String(passwordField.getPassword());
-                currentUser = new User(currentUser.getIDname(), newPassword);
-                userManager.saveUsersToFile(); // Kullanıcı bilgilerini kaydet
-                JOptionPane.showMessageDialog(frame, "Profile updated successfully.");
-            }
-        });
-
-        // Sol paneldeki kitap listesinde seçim değişikliklerini dinlemek için bir listener ekleniyor
+        // Sol panelde kitap listesi için dinleyici ekleniyor
         bookList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                    int selectedIndex = bookList.getSelectedIndex();
-                    if (selectedIndex != -1) {
-                        String selectedBook = bookListModel.getElementAt(selectedIndex);
-                        bookDetailsArea.setText("Book Details:\n" + selectedBook);
-                    } else {
-                        bookDetailsArea.setText("");
+                    String selectedBookTitle = bookList.getSelectedValue();
+                    if (selectedBookTitle != null) {
+                        for (Book book : library.getAllBooks()) {
+                            if (book.toString().equals(selectedBookTitle)) {
+                                bookDetailsArea.setText("Title: " + book.getTitle() +
+                                        "\nAuthor: " + book.getAuthor() +
+                                        "\nISBN: " + book.getIsbn());
+                                break;
+                            }
+                        }
                     }
                 }
             }
         });
 
-        // Paneller çerçeveye ekleniyor
+        // Orta panel ve içeriği oluşturuluyor
+        JPanel midPanel = new JPanel(new BorderLayout());
+        bookDetailsArea = new JTextArea();
+        bookDetailsArea.setEditable(false);
+        midPanel.add(new JScrollPane(bookDetailsArea), BorderLayout.CENTER);
+
+        // Orta panelde butonlar oluşturuluyor
+        JPanel midButtonPanel = new JPanel(new GridLayout(1, 2));
+        JButton borrowButton = new JButton("Borrow Book");
+        JButton returnButton = new JButton("Return Book");
+        midButtonPanel.add(borrowButton);
+        midButtonPanel.add(returnButton);
+        midPanel.add(midButtonPanel, BorderLayout.SOUTH);
+
+        // Sağ panel ve içeriği oluşturuluyor
+        JPanel rightPanel = new JPanel(new GridLayout(3, 2));
+        rightPanel.add(new JLabel("User ID"));
+        userIDField = new JTextField(currentUser.getIDname());
+        userIDField.setEditable(false);
+        rightPanel.add(userIDField);
+
+        rightPanel.add(new JLabel("Password"));
+        passwordField = new JPasswordField(currentUser.getPassword());
+        rightPanel.add(passwordField);
+
+        JButton saveButton = new JButton("Save");
+        rightPanel.add(saveButton);
+
+        // Sağ panelde save butonu için action listener ekleniyor
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String newPassword = new String(passwordField.getPassword());
+                currentUser = new User(currentUser.getIDname(), newPassword);
+                userManager.saveUsersToFile();
+                JOptionPane.showMessageDialog(frame, "Password updated successfully.");
+            }
+        });
+
+        // Kitap ödünç alma butonu için action listener ekleniyor
+        borrowButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedBookTitle = bookList.getSelectedValue();
+                if (selectedBookTitle != null) {
+                    for (Book book : library.getAllBooks()) {
+                        if (book.toString().equals(selectedBookTitle)) {
+                            library.borrowBook(currentUser.getIDname(), book);
+                            JOptionPane.showMessageDialog(frame, "Book borrowed successfully.");
+                            updateButtons();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Kitap iade etme butonu için action listener ekleniyor
+        returnButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedBookTitle = bookList.getSelectedValue();
+                if (selectedBookTitle != null) {
+                    for (Book book : library.getAllBooks()) {
+                        if (book.toString().equals(selectedBookTitle)) {
+                            library.returnBook(currentUser.getIDname(), book);
+                            JOptionPane.showMessageDialog(frame, "Book returned successfully.");
+                            updateButtons();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Butonları güncelleyen metod
+        updateButtons();
+
+        // Panelleri frame'e ekliyoruz
         frame.add(leftPanel);
         frame.add(midPanel);
         frame.add(rightPanel);
 
-        // Çerçeve görünür hale getiriliyor
+        // Frame'i görünür yapıyoruz
         frame.setVisible(true);
+    }
+
+    private void updateButtons() {
+        List<Book> borrowedBooks = library.getUserBooks(currentUser.getIDname());
+        for (Component c : frame.getComponents()) {
+            if (c instanceof JButton) {
+                JButton button = (JButton) c;
+                String buttonText = button.getText();
+                if (buttonText.equals("Borrow Book")) {
+                    button.setEnabled(true);
+                    for (Book book : borrowedBooks) {
+                        if (book.toString().equals(bookDetailsArea.getText())) {
+                            button.setEnabled(false);
+                            break;
+                        }
+                    }
+                } else if (buttonText.equals("Return Book")) {
+                    button.setEnabled(false);
+                    for (Book book : borrowedBooks) {
+                        if (book.toString().equals(bookDetailsArea.getText())) {
+                            button.setEnabled(true);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void open() {
