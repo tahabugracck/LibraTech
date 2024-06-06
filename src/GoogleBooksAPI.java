@@ -1,8 +1,10 @@
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -10,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GoogleBooksAPI {
-    private static final String API_KEY = "AIzaSyBl49c0G3ort8u0Fey5uljxkxE-rMUNe2E"; // Google Books API key
+    private static final String API_KEY = "YOUR_API_KEY";
     private static final String API_URL = "https://www.googleapis.com/books/v1/volumes?q=";
 
     public static List<Book> searchBooks(String query) {
@@ -48,7 +50,7 @@ public class GoogleBooksAPI {
                     books.add(new Book(title, author, isbn));
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
         return books;
