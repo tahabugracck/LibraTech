@@ -2,96 +2,58 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class LoginScreen {
     private JFrame frame;
-    private UserManager userManager;
 
     public LoginScreen() {
-        userManager = new UserManager();
+        frame = new JFrame("LibraTech - LoginScreen");
+        frame.setSize(500, 150);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        String iconPath = "C:\\Users\\tahab\\IdeaProjects\\LibraTech\\src\\icon\\LibraTech_icon.png";
+        frame.setIconImage(new ImageIcon(iconPath).getImage());
 
-        try {
-            frame = new JFrame("LibraTech - LoginScreen");
-            frame.setSize(500, 150);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setLocationRelativeTo(null);
-            String iconPath = "C:\\Users\\tahab\\IdeaProjects\\LibraTech\\src\\icon\\LibraTech_icon.png";
-            frame.setIconImage(new ImageIcon(iconPath).getImage());
+        JPanel userOperationsPanel = new JPanel(new GridLayout(2, 2));
+        JTextField userID = new JTextField();
+        JPasswordField userPassword = new JPasswordField();
+        userOperationsPanel.add(new JLabel("User ID"));
+        userOperationsPanel.add(userID);
+        userOperationsPanel.add(new JLabel("Password"));
+        userOperationsPanel.add(userPassword);
 
-            JPanel userLoginScreen = new JPanel(new GridLayout(2, 2));
-            JTextField userID = new JTextField();
-            userLoginScreen.add(new JLabel("User ID"));
-            userLoginScreen.add(userID);
+        JPanel userOperationsButtonPanel = new JPanel(new GridLayout(1, 2));
+        JButton loginButton = new JButton("Login");
+        JButton forgotButton = new JButton("Forgot Password");
 
-            JPasswordField userPassword = new JPasswordField();
-            userLoginScreen.add(new JLabel("Password"));
-            userLoginScreen.add(userPassword);
-
-            JPanel buttonPanel = new JPanel(new GridLayout(1, 3));
-            JButton loginButton = new JButton("Login");
-            JButton forgotButton = new JButton("Forgot");
-            JButton registerButton = new JButton("Register");
-
-            loginButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        String ID = userID.getText();
-                        String pass = new String(userPassword.getPassword());
-                        if (userManager.authenticateUser(ID, pass) || pass.equals("123456")) {
-                            User authenticatedUser = userManager.getUser(ID);
-                            HomeScreen appScreen = new HomeScreen(authenticatedUser);
-                            appScreen.open();
-                            frame.dispose();
-                        } else {
-                            JOptionPane.showMessageDialog(frame, "Invalid User ID or Password");
-                        }
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
-                        ex.printStackTrace(); // Bu metodun amacı eğer bir hata varsa bunu çok daha detaylı bir şekilde açıklamak
-                    }
+        loginButton.addActionListener(e -> {
+            String id = userID.getText();
+            String password = new String(userPassword.getPassword());
+            try {
+                User user = AuthenticationManager.authenticate(id, password);
+                if (user != null) {
+                    JOptionPane.showMessageDialog(frame, "Login successful!");
+                    frame.dispose();
+                    new HomeScreen(user);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid ID or password.");
                 }
-            });
+            } catch (IOException ioException) {
+                JOptionPane.showMessageDialog(frame, "Error reading user data: " + ioException.getMessage());
+            }
+        });
 
-            forgotButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        new ForgotScreen();
-                    } catch (Exception exception) {
-                        JOptionPane.showMessageDialog(frame, "Error" + exception.getMessage());
-                        exception.printStackTrace();
-                    }
-                }
-            });
+        forgotButton.addActionListener(e -> {
+            new ForgotScreen().open();
+        });
 
-            registerButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        String ID = userID.getText();
-                        String pass = new String(userPassword.getPassword());
-                        userManager.addUser(new User(ID, pass));
-                        JOptionPane.showMessageDialog(frame, "User registered successfully.");
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage());
-                        ex.printStackTrace();
-                    }
-                }
-            });
+        userOperationsButtonPanel.add(loginButton);
+        userOperationsButtonPanel.add(forgotButton);
 
-            buttonPanel.add(loginButton);
-            buttonPanel.add(forgotButton);
-            buttonPanel.add(registerButton);
+        frame.add(userOperationsPanel, BorderLayout.NORTH);
+        frame.add(userOperationsButtonPanel, BorderLayout.SOUTH);
 
-            frame.add(userLoginScreen, BorderLayout.NORTH);
-            frame.add(buttonPanel, BorderLayout.SOUTH);
-
-            frame.setVisible(true);
-
-        } catch (Exception exception) {
-            JOptionPane.showMessageDialog(null, "Error: " + exception.getMessage());
-            exception.printStackTrace();
-        }
+        frame.setVisible(true);
     }
 }
