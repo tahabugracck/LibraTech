@@ -1,18 +1,17 @@
+import javax.mail.*;
+import javax.mail.internet.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.mail.*;
-import javax.mail.internet.*;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.UUID;
 
 public class ForgotScreen {
     private JFrame frame;
 
     public ForgotScreen() {
-        //ForgotScreen sınıfının arayüzünü tasarladık.
         frame = new JFrame("LibraTech - ForgotScreen");
         frame.setSize(500, 150);
         frame.setLocationRelativeTo(null);
@@ -32,24 +31,21 @@ public class ForgotScreen {
         JButton sendButton = new JButton("Send");
         JButton cancelButton = new JButton("Cancel");
 
-        //sendButtonun aksiyonlarını ayarladık.
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String email = userMail.getText();
                 String id = userID.getText();
-                String password = generatePassword(); // Şifreyi oluşturun
+                String password = generatePassword();
                 try {
-                    sendEmail(email, id, password); // E-posta gönderin
-                    JOptionPane.showMessageDialog(frame, "The new password has been sent to your e-mail address."); // Bilgilendirme mesajı
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                    sendEmail(email, id, password);
+                    JOptionPane.showMessageDialog(frame, "The new password has been sent to your e-mail address.");
+                } catch (IOException | MessagingException ex) {
                     JOptionPane.showMessageDialog(frame, "Error sending email: " + ex.getMessage());
                 }
             }
         });
 
-        //cancelButtonunun aksiyonunu ayarladık.
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -71,17 +67,15 @@ public class ForgotScreen {
     }
 
     private String generatePassword() {
-        // Şifre oluşturma logic
-        return "123456"; // Evrensel bir şifre. Her ID ile açılacak şifredir.
+        return UUID.randomUUID().toString().substring(0, 8);
     }
 
-    //sendButtonuna basıldığında mail göndermek için gerekli işlemler.
-    private void sendEmail(String to, String id, String password) throws IOException {
+    private void sendEmail(String to, String id, String password) throws IOException, MessagingException {
         Properties config = ConfigReader.readConfig();
-        String from = config.getProperty("email.from"); // Kendi e-posta adresiniz
-        String host = "smtp.gmail.com"; // Gmail SMTP sunucusu
-        String username = config.getProperty("email.username"); // E-posta adresiniz
-        String emailPassword = config.getProperty("email.password"); // E-posta adresinizin şifresi (tercihen uygulama şifresi). Bu şifre "Daha Az Güvenli Uygulamalar" yazılarak bulundu.
+        String from = config.getProperty("email.from");
+        String host = "smtp.gmail.com";
+        String username = config.getProperty("email.username");
+        String emailPassword = config.getProperty("email.password");
 
         Properties properties = System.getProperties();
         properties.setProperty("mail.smtp.host", host);
@@ -89,24 +83,18 @@ public class ForgotScreen {
         properties.setProperty("mail.smtp.starttls.enable", "true");
         properties.setProperty("mail.smtp.port", "587");
 
-        Session session = Session.getDefaultInstance(properties, new Authenticator() {
+        Session session = Session.getInstance(properties, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(username, emailPassword);
             }
         });
 
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject("New Password Request");
-            // Gönderilen E-posta metninde kullanıcı ID'sini ve yeni şifreyi belirtiyoruz
-            message.setText("Your ID: " + id + "\nYour new password: " + password);
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(from));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+        message.setSubject("New Password Request");
+        message.setText("Your ID: " + id + "\nYour new password: " + password);
 
-            Transport.send(message);
-            System.out.println("Email sent successfully...");
-        } catch (MessagingException mex) {
-            mex.printStackTrace();
-        }
+        Transport.send(message);
     }
 }
