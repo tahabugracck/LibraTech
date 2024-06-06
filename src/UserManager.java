@@ -10,7 +10,7 @@ public class UserManager {
     }
 
     public void addUser(User user) {
-        if (!isUserIDNameTaken(user.getIDname())) {
+        if (!isUserIDTaken(user.getId())) {
             users.add(user);
             saveUsersToFile();
         } else {
@@ -20,16 +20,16 @@ public class UserManager {
 
     public boolean authenticateUser(String ID, String password) {
         for (User user : users) {
-            if (user.getIDname().equals(ID) && user.getPassword().equals(password)) {
+            if (user.getId().equals(ID) && user.getPassword().equals(password)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isUserIDNameTaken(String ID) {
+    public boolean isUserIDTaken(String ID) {
         for (User user : users) {
-            if (user.getIDname().equals(ID)) {
+            if (user.getId().equals(ID)) {
                 return true;
             }
         }
@@ -38,7 +38,7 @@ public class UserManager {
 
     public User getUser(String ID) {
         for (User user : users) {
-            if (user.getIDname().equals(ID)) {
+            if (user.getId().equals(ID)) {
                 return user;
             }
         }
@@ -46,8 +46,7 @@ public class UserManager {
     }
 
     public void saveUsersToFile() {
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("users.dat"));
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("users.dat"))) {
             oos.writeObject(users);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error saving users: " + e.getMessage());
@@ -57,8 +56,7 @@ public class UserManager {
     public void loadUsersFromFile() {
         File file = new File("users.dat");
         if (file.exists()) {
-            try {
-                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
                 users = (ArrayList<User>) ois.readObject();
             } catch (IOException | ClassNotFoundException e) {
                 JOptionPane.showMessageDialog(null, "Error loading users: " + e.getMessage());
